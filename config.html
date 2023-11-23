@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <script src="https://cdn.everxyz.com/everapi/stable/everapi@v4.5.11.js"></script>
+  </head>
+
+  <body>
+    <div style="display: flex; flex-direction: column">
+      <div class="config">
+        <textarea id="config-text" style="height: 300px; width: 400px;"></textarea>
+
+        <button id="config-btn">Update config</button>
+        <p>
+          阅读<a
+            href="https://ever-xyz.feishu.cn/wiki/wikcnRVP7vU4eG91LGu99xSAVfg#XQWqdm0esoO8Y8xW6BBcfe3bnfd"
+            >更多</a
+          >关于 Fractal 3D 配置的内容
+        </p>
+      </div>
+
+      <div id="everapi-1" style="height: 600px; width: 800px"></div>
+    </div>
+    <script>
+      const container = document.getElementById("everapi-1");
+      window.EverAPI._addInstance(
+        "everapi-1",
+        container,
+        {},
+        "EverAPIComponent"
+      );
+
+      // 获取实例
+      const instance = window.EverAPI.getInstanceById("everapi-1");
+      // 此处的 appid 与 appkey 需要填入你在 fractal 3d 申请得到的
+      // 下面的 appid 与 appkey 只在 localhost:9000 可用
+      window.EverAPI.login("<APP_ID>", "<APP_KEY>");
+
+      {
+        const currentFiles = [{ filename: "a.stp", url: `assets/asset.e3dx` }];
+        instance.openFiles(currentFiles);
+      }
+
+      const initConfig = {
+        lang: "zh",
+        width: "100%",
+        height: "100%",
+        scale: 1,
+        renderMode: "flat",
+        sceneType: "default",
+        viewType: "evercraft",
+        highlightedOnClick: true,
+        zoomAble: true,
+        progressVisible: true,
+        preserveDrawingBuffer: true,
+        toolbar: {
+          enabled: true,
+          tree: true,
+          section: true,
+          explode: true,
+          measure: {
+            enabled: true,
+            properties: {
+              boundary: true,
+              thick: true,
+              length: true,
+              distance: true,
+              radius: true,
+              angle: true,
+              entity: true,
+            },
+          },
+          view: true,
+          render: true,
+          projection: true,
+          fullscreen: true,
+          theme: true,
+          compass: true,
+        },
+        cache: {
+          enabled: true,
+          key: "url",
+          database: "EverApi3D",
+        },
+        logo: {
+          enabled: false,
+          width: "80px",
+          height: "auto",
+          src: "",
+          href: "https://evercraft.co",
+        },
+        customStyle: {
+          backgroundColor: undefined,
+          backgroundOpacity: undefined,
+        },
+        customText: {
+          zh: {
+            menu: {
+              single: "单独显示",
+              all: "全部显示",
+              hide: "隐藏部件",
+              center: "视图居中",
+              opacity: {
+                enable: "透明显示",
+                disable: "取消透明",
+              },
+            },
+            toolbar: {
+              tree: {
+                label: "结构树",
+              },
+              section: {
+                label: "剖切",
+                title: "剖切面",
+              },
+              explode: {
+                label: "爆炸",
+                title: "爆炸",
+              },
+              measure: {
+                label: "测量",
+                title: "测量",
+                properties: {
+                  boundary: "包围盒",
+                  thick: "壁厚",
+                  length: "棱边长度",
+                  distance: "距离",
+                  radius: "直径/半径",
+                  angle: "平面夹角",
+                  entity: "体积/表面积",
+                  unit: "单位",
+                },
+              },
+              boundary: {
+                label: "边界",
+              },
+              view: {
+                label: "视图",
+                title: "切换视图",
+                properties: {
+                  front: "前视图",
+                  rear: "后视图",
+                  left: "左视图",
+                  right: "右视图",
+                  top: "上视图",
+                  bottom: "下视图",
+                  isometric: "轴测图",
+                },
+              },
+              render: {
+                label: "渲染",
+                properties: {
+                  wireframe: "线框",
+                  flat: "着色",
+                  flatlines: "线框着色",
+                },
+              },
+              projection: {
+                label: "投影",
+                properties: {
+                  orthogonal: "正交投影",
+                  perspective: "透视投影",
+                },
+              },
+            },
+          },
+        },
+      };
+
+      document.getElementById("config-text").value = configStr = JSON.stringify(
+        initConfig,
+        null,
+        2
+      );
+
+      const onConfigUpdate = () => {
+        if (!instance) {
+          alert("api not ready, please wait");
+          return;
+        }
+        const config = document.getElementById("config-text").value;
+        instance.config(JSON.parse(config));
+      };
+
+      document.getElementById("config-btn").onclick = onConfigUpdate;
+    </script>
+  </body>
+</html>

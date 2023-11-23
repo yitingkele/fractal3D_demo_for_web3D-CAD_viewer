@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+
+    <style>
+      .content {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .item {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        box-shadow: 0 0 5px #ccc;
+        padding: 10px;
+      }
+
+      code {
+        border: 1px solid #736be2;
+        border-radius: 3px;
+        padding: 3px;
+        background-color: #5d4aed8b;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="content">
+      <div class="item">
+        <p>
+          此示例使用 nodejs/express 作为服务后端，这里 express 仅仅作为一个
+          static 文件服务器，没有使用其他功能。
+        </p>
+        <p>你可以使用任何语言作为后端，只要能够提供一个静态文件服务器即可。</p>
+        <p>如果你需要在后端进行文件转换，需要像前端一样构造 FormData，然后调用接口，对于常用语言来说，FromData 的构造一般都有成熟库可以帮我们做到。</p>
+      </div>
+
+      <div class="item">
+        <h2>单个简单文件显示</h2>
+        <ul>
+          <li>
+            <h5>适用场景</h5>
+            <p>单个通用3D文件格式:obj、stl、gltf、fbx、dae、3mf</p>
+          </li>
+          <li>
+            <h5>文件地址： <code>demos/simple-singlefile.html</code></h5>
+          </li>
+          <li>
+            <a href="simple-singlefile.html">访问地址</a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="item">
+        <h2>单个3D文件转换并显示</h2>
+        <ul>
+          <li>
+            <h5>适用场景</h5>
+            <p>需要转换成e3dx的复杂格式，如：stp, sldprt, prt 等</p>
+          </li>
+          <li>
+            <h5>文件地址： <code>demos/upload-and-show.html</code></h5>
+          </li>
+          <li>
+            <a href="upload-and-show.html">访问地址</a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="item">
+        <h2>2D文件转换并显示</h2>
+        <ul>
+          <li>
+            <h5>适用场景</h5>
+            <p>dwg/dxf格式</p>
+          </li>
+          <li>
+            <h5>文件地址： <code>demos/2d-show.html</code></h5>
+          </li>
+          <li>
+            <a href="2d-show.html">访问地址</a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="item">
+        <h2>装配体文件转换并显示</h2>
+        <ul>
+          <li>
+            <h5>适用场景</h5>
+            <p>有装配关系的文件显示需求</p>
+          </li>
+          <li>
+            <h5>文件地址： <code>demos/assembly-file.html</code></h5>
+          </li>
+          <li>
+            <a href="assembly-file.html">访问地址</a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="item">
+        <h2>3d 标注相关操作</h2>
+        <ul>
+          <li>
+            <h5>适用场景</h5>
+            <p>需要使用 3d 标注</p>
+          </li>
+          <li>
+            <h5>文件地址： <code>demos/pins.html</code></h5>
+          </li>
+          <li>
+            <a href="pins.html">访问地址</a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="item">
+        <h2>3d 测量数据相关</h2>
+        <ul>
+          <li>
+            <h5>适用场景</h5>
+            <p>需要获取测量数据</p>
+          </li>
+          <li>
+            <h5>文件地址： <code>demos/measure.html</code></h5>
+          </li>
+          <li>
+            <a href="measure.html">访问地址</a>
+          </li>
+        </ul>
+      </div>
+      <div class="item">
+        <h2>自定义配置</h2>
+        <ul>
+          <li>
+            <h5>适用场景</h5>
+            <p>需要对 api 显示元素进行配置时</p>
+          </li>
+          <li>
+            <h5>文件地址： <code>demos/config.html</code></h5>
+          </li>
+          <li>
+            <a href="config.html">访问地址</a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="item">
+        <h2>模型对比</h2>
+        <ul>
+          <li>
+            <h5>适用场景</h5>
+            <p>两个模型文件进行对比</p>
+          </li>
+          <li>
+            <h5>文件地址： <code>demos/compare.html</code></h5>
+          </li>
+          <li>
+            <a href="compare.html">访问地址</a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="item">
+        <h2>自定义配置</h2>
+        <ul>
+          <li>
+            <h5>适用场景</h5>
+            <p>需要对 api 显示元素进行配置时</p>
+          </li>
+          <li>
+            <h5>文件地址： <code>demos/config.html</code></h5>
+          </li>
+          <li>
+            <a href="config.html">访问地址</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>

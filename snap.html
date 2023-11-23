@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <script src="https://cdn.everxyz.com/everapi/stable/everapi@v4.2.5.js"></script>
+  </head>
+
+  <body>
+    <!-- filename中需要正确的文件后缀名 -->
+    <!-- 这里把文件放到和index.html同一个文件夹中，然后把文件名（包括后缀）同时填入 filename 和 url 中即可 -->
+    <!-- 例如这里，我的文件夹中有一个 asset.obj 文件，所以我填入的是  assets/asset.obj -->
+    <!-- 其他不用改，我们就可以在网页显示 3d 文件了 -->
+    <div>
+      <ever-3d
+        id="hello"
+        width="800px"
+        height="600px"
+        filename="asset.obj"
+        url="assets/asset.obj"
+      />
+    </div>
+
+    <div style="margin-top: 50px">
+      <button id="btn">截图</button>
+      <button id="download">截图并下载</button>
+      <img id="img" alt="" style="width: 300px" />
+    </div>
+
+    <script>
+      let instance = window.EverAPI.getInstanceById("hello");
+      // 此处的 appid 与 appkey 需要填入你在 fractal 3d 申请得到的
+      // 下面的 appid 与 appkey 只在 localhost:9000 可用
+      window.EverAPI.login("<APP_ID>", "<APP_KEY>");
+
+      instance.config({ preserveDrawingBuffer: true });
+
+      document.getElementById("btn").onclick = async () => {
+        let photo = await instance.takePhoto();
+        document.getElementById("img").src = photo;
+      };
+      window.ins = instance;
+
+      document.getElementById("download").onclick = async () => {
+        let photo = await instance.takePhoto();
+        const a = document.createElement("a");
+        a.href = photo;
+        a.download = "test.png";
+        a.click();
+      };
+    </script>
+  </body>
+</html>

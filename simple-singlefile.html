@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <script src='https://cdn.everxyz.com/everapi/stable/everapi@v4.5.11.js'></script>
+  <script src="https://cdn.everxyz.com/axios/dist/axios.min.js"></script>
+</head>
+
+<div style="margin-top: 50px">
+  <img id="img" alt="" style="width: 300px" />
+</div>
+
+<body>
+  <!-- filename中需要正确的文件后缀名 -->
+  <!-- 这里把文件放到和index.html同一个文件夹中，然后把文件名（包括后缀）同时填入 filename 和 url 中即可 -->
+  <!-- 例如这里，我的文件夹中有一个 asset.obj 文件，所以我填入的是  assets/asset.obj -->
+  <!-- 其他不用改，我们就可以在网页显示 3d 文件了 -->
+  <div id="everapi-1" style="height: 600px; width: 800px;"></div>
+  <script>
+    async function get_access_token() {
+      const res = await axios.post(
+        "https://portal.fractal3d.everxyz.com/api/users/access-token",
+        {
+          permissions: [
+            {
+              resource: "cabin",
+              operation: "read",
+            },
+            {
+              resource: "cabin",
+              operation: "write",
+            },
+            {
+              resource: "turbine",
+              operation: "read",
+            },
+            {
+              resource: "turbine",
+              operation: "write",
+            },
+          ],
+        },
+        {
+          headers: {
+            Authorization: "Bearer <APP_KEY>",
+          },
+        }
+      );
+      const token = res.data.access_token;
+      return token;
+    };
+
+    function init_fractal3d(accessToken) {
+      const container = document.getElementById("everapi-1");
+      window.EverAPI._addInstance(
+        "everapi-1",
+        container,
+        {},
+        "EverAPIComponent"
+      );
+
+      window.EverAPI.loginUtopia(accessToken, "https://portal.fractal3d.everxyz.com");
+      let instance = window.EverAPI.getInstanceById('everapi-1');
+      return instance;
+    }
+
+    get_access_token().then((token) => {
+      const instance = init_fractal3d(token);
+      //open a file without conversion
+      instance.openFiles([{ filename: "asset.obj", url: `assets/asset.obj` }]);
+    })
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <script src='https://cdn.everxyz.com/everapi/stable/everapi@v4.5.11.js'></script>
+  <script src="https://cdn.everxyz.com/axios/dist/axios.min.js"></script>
+</head>
+
+<!-- 装配关系文件转换并显示示例 -->
+<!--  适用场景： 需要显示装配体文件， 例如 sldasm， asm 等文件 -->
+
+<body>
+  <div style="display: flex; align-items: start; flex-direction: column">
+    <div style="
+          display: flex;
+          align-items: center;
+          padding: 8px;
+          border: 1px;
+          border-color: black;
+          border-style: solid;
+          margin-bottom: 8px;
+        ">
+      <input type="file" id="part-file" multiple />
+      <button id="part-upload">上传零件（s）</button>
+      <label id="part-status">此处零件也可为次级装配体</label>
+    </div>
+    <div style="
+          display: flex;
+          align-items: center;
+          padding: 8px;
+          border: 1px;
+          border-color: black;
+          border-style: solid;
+          margin-bottom: 8px;
+        ">
+      <input type="file" id="assembly-file" />
+      <button id="assembly-upload">上传并显示装配体</button>
+      <label id="assembly-status">先上传零件，再上传装配体</label>
+    </div>
+    <ul>
+      <li>
+        推荐一般做法为：先上传零件，再上传装配体，这样可以保证装配体中的零件都是已经上传的，不会出现找不到零件的情况
+        否则显示的装配体可能会出现零件缺失的情况。
+      </li>
+      <li>
+        点击上传零件不会立即显示，而是等到上传装配体时才会显示。
+      </li>
+    </ul>
+  </div>
+
+  <div id="everapi-1" style="height: 600px; width: 800px;"></div>
+  <script>
+    let instance;
+    let accessToken;
+
+    //初始化fractal3d
+    function init_fractal3d(accessToken) {
+      const container = document.getElementById("everapi-1");
+      window.EverAPI._addInstance(
+        "everapi-1",
+        container,
+        {},
+        "EverAPIComponent"
+      );
+
+      window.EverAPI.loginUtopia(accessToken, "https://portal.fractal3d.everxyz.com");
+      let instance = window.EverAPI.getInstanceById('everapi-1');
+      return instance;
+    }
+
+    //获取access-token
+    const get_access_token = async () => {
+      const res = await axios.post(
+        "https://portal.fractal3d.everxyz.com/api/users/access-token",
+        {
+          permissions: [
+            {
+              resource: "cabin",
+              operation: "read",
+            },
+            {
+              resource: "cabin",
+              operation: "write",
+            },
+            {
+              resource: "turbine",
+              operation: "read",
+            },
+            {
+              resource: "turbine",
+              operation: "write",
+            },
+          ],
+        },
+        {
+          headers: {
+            Authorization: "Bearer <API_KEY>",
+          },
+        }
+      );
+      const token = res.data.access_token;
+      return token;
+    };
+
+    //获取token并初始化
+    get_access_token().then((token) => {
+      accessToken = token;
+      if (!accessToken) {
+        console.log("no valid token");
+        return;
+      }
+      instance = init_fractal3d(accessToken);
+    })
+
+    // 上传文件到服务器
+    const uploadFile = async (
+      file /* File */,
+      accessToken,
+      onProgress /* (progress: number) => void */
+    ) => {
+      let file_id = "";
+      let filename = "";
+      try {
+        // 调用 uploadFile 方法，将包装好的 formData 上传到服务器
+        const res = await axios.post(
+          "https://portal.fractal3d.everxyz.com/api/files",
+          file,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/octet-stream",
+            },
+            params: {
+              file_name: file.name,
+              file_size: file.size,
+              file_retention_days: 1,
+            },
+            onUploadProgress(e) {
+              // 上传进度回调，需要注意的是，这里的进度是文件上传的进度， 接口最后会做一次校验，所以进度 100% 并不代表接口结束
+              const { loaded, total } = e;
+              if (total) {
+                onProgress((loaded / total) * 100);
+              }
+            },
+          }
+        );
+
+        file_id = res.data;
+      } catch (error) {
+        console.error(error);
+      }
+      filename = file.name;
+      return { filename, file_id };
+    };
+
+    //启动转换
+    const convert_exec = async (file_id, accessToken) => {
+      console.log(file_id);
+      console.log(accessToken)
+      const result = await axios.post(
+        "https://portal.fractal3d.everxyz.com/api/converts",
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/octet-stream",
+          },
+          params: {
+            file_id: file_id,
+            target_format: "e3dx",
+          },
+        }
+      );
+
+      let { transaction_id } = result.data;
+      return { transaction_id };
+    }
+
+    // 从服务器查询文件转换状态
+    // 需要注意的是， 这里的 url 是临时的，在一段时间后会失效，所以推荐做法是保存上传文件的 uuid，然后通过 uuid 查询文件的 url
+    // 参数 uuid 为 uploadFile 返回的 uuid
+    const pollingFileStatus = async (txId, accessToken) => {
+      // 使用 uploadFile 返回的 uuid 查询该文件的转换状态
+      const data = await axios.get("https://portal.fractal3d.everxyz.com/api/converts/result_file", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        params: {
+          transaction_id: txId,
+        },
+      });
+
+      status = data.data.status;
+      url = data.data.url;
+      return { status, url };
+    };
+
+    // 这里简单起见使用全局变量保存零件文件， 将会在 onUploadAssembly 中使用
+    let parts = [];
+
+    // 上传文件并转换，转换成功后打开文件
+    // 推荐等待零件全部上传成功并转换成功后再上传装配体， 不然显示时可能会出现零件丢失的情况
+    const onUploadAssembly = async () => {
+      // 这里使用了原生的 file input 获取文件，也可以使用其他方式获取文件
+      // 这里只使用第一个文件
+      const file = document.getElementById("assembly-file").files[0];
+      if (!file) {
+        alert("请选择文件");
+        return;
+      }
+      console.log("--- processing file ", file.name, " ---");
+
+      const { filename, file_id } = await uploadFile(file, accessToken,(progress) => {
+        document.getElementById(
+          "assembly-status"
+        ).innerText = `上传进度：${progress}%`;
+      });
+      const {transaction_id}=await convert_exec(file_id.file_id,accessToken);
+      document.getElementById("assembly-status").innerText =
+        "上传成功，开始转换";
+
+      // 轮询查询文件转换状态
+      // 这里使用 Promise + setTimeout 实现轮询，也可以使用其他方式实现轮询
+      let status = "Pending";
+      let url = "";
+      while (status === "Pending") {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        ({ status, url } = await pollingFileStatus(transaction_id,accessToken));
+      }
+      console.log("asm status:",status)
+      if (status === "Succeeded") {
+        document.getElementById("assembly-status").innerText = "转换成功";
+        const currentFiles = [{ filename, url, assets: parts }];
+        instance.openFiles(currentFiles);
+      } else {
+        document.getElementById("assembly-status").innerText = "转换失败";
+      }
+    };
+
+    // 一次性上传需要显示的装配体引用的所有零件
+    const onUploadParts = async () => {
+      const files = document.getElementById("part-file").files;
+      if (!files) {
+        alert("选择文件为空！");
+        return;
+      }
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        console.log("--- processing file ", file.name, " ---");
+        const setStatus = (status) => {
+          document.getElementById(
+            "part-status"
+          ).innerText = `文件：${file.name} 状态：${status}`;
+        };
+        const { filename, file_id } = await uploadFile(file, accessToken,(progress) => {
+          setStatus(`上传进度：${progress}%`);
+        });
+
+        setStatus("上传成功，开始转换");
+        const {transaction_id}=await convert_exec(file_id.file_id,accessToken);
+        // 轮询查询文件转换状态
+        // 这里使用 Promise + setTimeout 实现轮询，也可以使用其他方式实现轮询
+        let status = "Pending";
+        let url = "";
+        while (status === "Pending") {
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          ({ status, url } = await pollingFileStatus(transaction_id,accessToken));
+        }
+
+        if (status === "Succeeded") {
+          setStatus("转换成功");
+          parts.push({ filename, url });
+        } else {
+          setStatus("转换失败");
+        }
+      }
+
+      document.getElementById("part-status").innerText = `${parts.length
+        } 个文件转换成功, ${files.length - parts.length} 个文件转换失败}`;
+    };
+
+    document.getElementById("assembly-upload").onclick = onUploadAssembly;
+    document.getElementById("part-upload").onclick = onUploadParts;
+
+  </script>
+</body>
+
+</html>

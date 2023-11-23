@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <script src='https://cdn.everxyz.com/everapi/stable/everapi@v4.5.11.js'></script>
+  <script src="https://cdn.everxyz.com/axios/dist/axios.min.js"></script>
+</head>
+
+<!-- 单个文件显示 3d 标注示例 -->
+<!--  适用场景：
+    需要用到 3d 标注功能的场景
+   -->
+
+<body>
+  <div style="
+        display: flex;
+        margin-bottom: 8px;
+        align-items: start;
+        flex-direction: column;
+      ">
+    <div style="display: flex; flex-direction: column; margin-bottom: 8px">
+      <div style="display: flex; margin-bottom: 8px">
+        <textarea id="pin-content" style="width: 300px; height: 100px"
+          placeholder="请输入 3d 标注信息, 留空则不导入标注信息； 3d 标注信息格式应为json"></textarea>
+        <button id="add-pin">导入 3d 标注</button>
+      </div>
+
+      <button id="start-pin" style="margin-bottom: 8px">打开 3d 标注</button>
+
+      <button id="export-pin" style="margin-bottom: 8px">
+        导出 3d 标注信息
+      </button>
+      <button id="close-pin" style="margin-bottom: 8px">关闭 3d 标注</button>
+      <button id="hidden-pin" style="margin-bottom: 8px">隐藏 3d 标注</button>
+      <button id="show-pin" style="margin-bottom: 8px">显示 3d 标注</button>
+    </div>
+
+    <div id="everapi-1" style="height: 600px; width: 800px"></div>
+
+    <p id="pin-info" style="margin-top: 50px"></p>
+  </div>
+
+  <script>
+    let instance;
+    let accessToken;
+
+    //获取access-token
+    const get_access_token = async () => {
+      const res = await axios.post(
+        "https://portal.fractal3d.everxyz.com/api/users/access-token",
+        {
+          permissions: [
+            {
+              resource: "cabin",
+              operation: "read",
+            },
+            {
+              resource: "cabin",
+              operation: "write",
+            },
+            {
+              resource: "turbine",
+              operation: "read",
+            },
+            {
+              resource: "turbine",
+              operation: "write",
+            },
+          ],
+        },
+        {
+          headers: {
+            Authorization: "Bearer <APP_KEY>",
+          },
+        }
+      );
+      const token = res.data.access_token;
+      return token;
+    };
+
+    //初始化fractal3d
+    function init_fractal3d(accessToken) {
+      const container = document.getElementById("everapi-1");
+      window.EverAPI._addInstance(
+        "everapi-1",
+        container,
+        {},
+        "EverAPIComponent"
+      );
+
+      window.EverAPI.loginUtopia(accessToken, "https://portal.fractal3d.everxyz.com");
+      let instance = window.EverAPI.getInstanceById('everapi-1');
+      return instance;
+    }
+
+    get_access_token().then((token) => {
+
+      accessToken = token;
+      instance = init_fractal3d(accessToken);
+      const currentFiles = [{ filename: "asset.obj", url: `assets/asset.obj` }];
+      instance.openFiles(currentFiles);
+
+    })
+
+    // 添加 3d 标注
+    const onAddPin = () => {
+      if (!instance || !instance.initAnno3DPins) {
+        alert("api not ready, please wait");
+      }
+
+      const pinContent = document.getElementById("pin-content").value;
+      if (pinContent) {
+        let pinObj;
+        try {
+          pinObj = JSON.parse(pinContent);
+        } catch (error) {
+          alert("pin content is not a valid json");
+          return;
+        }
+        instance.initAnno3DPins(pinObj);
+      }
+      console.log(pinContent);
+    };
+
+    // 开启 3d 标注
+    const onStartPin = () => {
+      if (!instance || !instance.startAnno3D) {
+        alert("api not ready, please wait");
+      }
+
+      instance.startAnno3D(true);
+    };
+
+    // 导出 3d 标注, 可以将结果保存为字符串
+    // 将这里显示到页面上的字符串保存到数据库中，下次打开文件时，可以通过 initAnno3DPins 方法将标注恢复
+    const onExportPin = () => {
+      if (!instance || !instance.getAnno3DPins) {
+        alert("api not ready, please wait");
+      }
+
+      pins = instance.getAnno3DPins();
+      console.log(pins);
+      document.getElementById("pin-info").innerText = JSON.stringify(pins);
+    };
+
+    // 停止 3d 标注
+    const onClosePin = () => {
+      if (!instance || !instance.startAnno3D) {
+        alert("api not ready, please wait");
+      }
+      instance.startAnno3D(false);
+    };
+
+    // 隐藏 3d 标注
+    const onHiddenPin = () => {
+      console.log(instance)
+      if (!instance || !instance.changeAnno3DVisible) {
+        alert("api not ready,please wait");
+      }
+      instance.changeAnno3DVisible(false);
+    };
+
+    const onShowPin = () => {
+      console.log(instance)
+      if (!instance || !instance.changeAnno3DVisible) {
+        alert("api not ready,please wait");
+      }
+      instance.changeAnno3DVisible(true);
+    };
+
+    // // set button onclick event
+    document.getElementById("export-pin").onclick = onExportPin;
+    document.getElementById("add-pin").onclick = onAddPin;
+    document.getElementById("close-pin").onclick = onClosePin;
+    document.getElementById("start-pin").onclick = onStartPin;
+    document.getElementById("hidden-pin").onclick = onHiddenPin;
+    document.getElementById("show-pin").onclick = onShowPin;
+  </script>
+</body>
+
+</html>
